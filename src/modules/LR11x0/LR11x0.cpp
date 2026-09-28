@@ -1679,7 +1679,39 @@ int16_t LR11x0::modSetup(uint8_t modem) {
   }
 
   // configure settings not accessible by API
-  return(config(modem));
+  state = config(modem);
+
+  // if something failed, check whether the oscillator is to blame
+  if((state != RADIOLIB_ERR_NONE) && (this->tcxoVoltage > 0.0f)) {
+    bool badOsc = false;
+    if(state == RADIOLIB_ERR_SPI_CMD_TIMEOUT) {
+      // BUSY stuck during calibration, no command gets through (not even to read the errors) until reset
+      RADIOLIB_DEBUG_BASIC_PRINTLN("Config timed out");
+      badOsc = true;
+      state = reset();
+      RADIOLIB_ASSERT(state);
+    } else if(state == RADIOLIB_ERR_SPI_CMD_FAILED) {
+      // unless mode is forced to standby, device errors will be 0
+      (void)standby();
+      uint16_t errors = 0;
+      (void)getErrors(&errors);
+      RADIOLIB_DEBUG_BASIC_PRINTLN("Config failed, device errors: 0x%X", errors);
+      badOsc = (errors & RADIOLIB_LR11X0_ERROR_STAT_HF_XOSC_START_ERR);
+    }
+
+    if(badOsc) {
+      // typically users with XTAL devices will try to call the default begin method
+      // disable TCXO and try to run config again
+      this->tcxoVoltage = 0;
+      RADIOLIB_DEBUG_BASIC_PRINTLN("Bad oscillator selected, trying XTAL");
+
+      state = setTCXO(0);
+      RADIOLIB_ASSERT(state);
+
+      state = config(modem);
+    }
+  }
+  return(state);
 }
 
 bool LR11x0::findChip(uint8_t ver) {
@@ -1745,12 +1777,20 @@ int16_t LR11x0::config(uint8_t modem) {
   // calibrate all blocks
   state = this->calibrate(RADIOLIB_LR11X0_CALIBRATE_ALL);
 
-  // wait for calibration completion
-  this->mod->hal->delay(5);
-  while(this->mod->hal->digitalRead(this->mod->getGpio())) {
-    this->mod->hal->yield();
+  // wait for calibration completion, unless the command already failed
+  if(state == RADIOLIB_ERR_NONE) {
+    this->mod->hal->delay(5);
+    RadioLibTime_t start = this->mod->hal->millis();
+    while(this->mod->hal->digitalRead(this->mod->getGpio())) {
+      this->mod->hal->yield();
+      if(this->mod->hal->millis() - start >= 3000) {
+        RADIOLIB_DEBUG_BASIC_PRINTLN("BUSY pin timeout after calibration!");
+        state = RADIOLIB_ERR_SPI_CMD_TIMEOUT;
+        break;
+      }
+    }
   }
-  
+
   // if something failed, show the device errors
   #if RADIOLIB_DEBUG_BASIC
   if(state != RADIOLIB_ERR_NONE) {
@@ -1760,9 +1800,8 @@ int16_t LR11x0::config(uint8_t modem) {
     getErrors(&errors);
     RADIOLIB_DEBUG_BASIC_PRINTLN("Calibration failed, device errors: 0x%X", errors);
   }
-  #else
-  RADIOLIB_ASSERT(state);
   #endif
+  RADIOLIB_ASSERT(state);
 
   // enable driving DIOs in sleep mode
   // this prevents IRQ going high when the device goes to sleep
