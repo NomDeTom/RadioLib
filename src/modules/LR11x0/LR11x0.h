@@ -787,7 +787,20 @@ class LR11x0: public LRxxxx {
 
     /*! \copydoc PhysicalLayer::launchMode */
     int16_t launchMode() override;
-    
+
+    /*!
+      \brief Get internal error bits.
+      \param err Pointer to variable to store the error bits.
+      \returns \ref status_codes
+    */
+    int16_t getErrors(uint16_t* err);
+
+    /*!
+      \brief Clear internal error bits.
+      \returns \ref status_codes
+    */
+    int16_t clearErrors(void);
+
 #if !RADIOLIB_GODMODE && !RADIOLIB_LOW_LEVEL
   protected:
 #endif
@@ -806,8 +819,6 @@ class LR11x0: public LRxxxx {
     int16_t writeRegMemMask32(uint32_t addr, uint32_t mask, uint32_t data);
 
     int16_t getVersion(uint8_t* hw, uint8_t* device, uint8_t* major, uint8_t* minor);
-    int16_t getErrors(uint16_t* err);
-    int16_t clearErrors(void);
     int16_t calibrate(uint8_t params);
     int16_t setRegMode(uint8_t mode);
     int16_t setDioAsRfSwitch(uint8_t en, uint8_t stbyCfg, uint8_t rxCfg, uint8_t txCfg, uint8_t txHpCfg, uint8_t txHfCfg, uint8_t gnssCfg, uint8_t wifiCfg);

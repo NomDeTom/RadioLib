@@ -127,6 +127,15 @@ class LRxxxx: public PhysicalLayer {
     uint32_t getIrqStatus();
 
     /*!
+      \brief Reads the chip status.
+      \param stat1 Pointer to variable to store the first status byte (command status).
+      \param stat2 Pointer to variable to store the second status byte (chip mode, reset source).
+      \param irq Pointer to variable to store the IRQ status bits.
+      \returns \ref status_codes
+    */
+    int16_t getStatus(uint8_t* stat1, uint8_t* stat2, uint32_t* irq);
+
+    /*!
       \brief Calculate the expected time-on-air for a given modem, data rate, packet configuration and payload size.
       \param modem Modem type.
       \param dr Data rate.
@@ -175,7 +184,6 @@ class LRxxxx: public PhysicalLayer {
     // the only difference is the 16-bit command code - however, having everything in this base class
     // will actually increase the binary size, because of the extra method calls that are needed
     // for that reason, only the methods that are 100% the same are kept here
-    int16_t getStatus(uint8_t* stat1, uint8_t* stat2, uint32_t* irq);
     int16_t lrFhssBuildFrame(uint16_t cmd, uint8_t hdrCount, uint8_t cr, uint8_t grid, uint8_t hop, uint8_t bw, uint16_t hopSeq, int8_t devOffset, const uint8_t* payload, size_t len);
     uint8_t roundRampTime(uint32_t rampTimeUs);
     int16_t findRxBw(float rxBw, const uint8_t* lut, size_t lutSize, float rxBwMax, uint8_t* val);

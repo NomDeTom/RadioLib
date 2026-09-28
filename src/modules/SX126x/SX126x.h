@@ -863,6 +863,24 @@ class SX126x: public PhysicalLayer {
     */
     int16_t setStandbyXOSC(bool enable);
 
+    /*!
+      \brief Get the chip status byte.
+      \returns Status byte: chip mode in bits 6:4, command status in bits 3:1.
+    */
+    uint8_t getStatus();
+
+    /*!
+      \brief Get the device error bits.
+      \returns Device error bits, only valid when the chip is in standby.
+    */
+    uint16_t getDeviceErrors();
+
+    /*!
+      \brief Clear the device error bits.
+      \returns \ref status_codes
+    */
+    int16_t clearDeviceErrors();
+
 #if !RADIOLIB_GODMODE && !RADIOLIB_LOW_LEVEL
   protected:
 #endif
@@ -891,10 +909,7 @@ class SX126x: public PhysicalLayer {
     int16_t setPacketParamsBPSK(uint8_t payloadLen, uint16_t rampUpDelay, uint16_t rampDownDelay, uint16_t payloadLenBits);
     int16_t setBufferBaseAddress(uint8_t txBaseAddress = 0x00, uint8_t rxBaseAddress = 0x00);
     int16_t setRegulatorMode(uint8_t mode);
-    uint8_t getStatus();
     uint32_t getPacketStatus();
-    uint16_t getDeviceErrors();
-    int16_t clearDeviceErrors();
 
 #if !RADIOLIB_GODMODE
   protected:

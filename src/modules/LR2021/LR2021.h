@@ -837,7 +837,21 @@ class LR2021: public LRxxxx {
       \returns \ref status_codes
     */
     int16_t getErrors(uint16_t* err);
-    
+
+    /*!
+      \brief Clear internal error bits.
+      \returns \ref status_codes
+    */
+    int16_t clearErrors(void);
+
+    /*!
+      \brief Get the firmware version.
+      \param major Pointer to variable to store the major version.
+      \param minor Pointer to variable to store the minor version.
+      \returns \ref status_codes
+    */
+    int16_t getVersion(uint8_t* major, uint8_t* minor);
+
     /*!
       \brief Get LoRa Rx statistics.
       \param pktRxTotal Total number of received packets.
@@ -963,8 +977,6 @@ class LR2021: public LRxxxx {
     int16_t getTemp(uint8_t source, uint8_t resolution, float* temp);
     int16_t setEolConfig(bool enable, uint8_t trim);
     int16_t getRandomNumber(uint32_t* rnd);
-    int16_t getVersion(uint8_t* major, uint8_t* minor);
-    int16_t clearErrors(void);
     int16_t setDioFunction(uint8_t dio, uint8_t func, uint8_t pullDrive);
     int16_t setDioRfSwitchConfig(uint8_t dio, uint8_t func);
     int16_t setDioIrqConfig(uint8_t dio, uint32_t irq);

@@ -969,6 +969,12 @@ class SX128x: public PhysicalLayer {
     void readBit(uint32_t pin) override;
     #endif
 
+    /*!
+      \brief Get the chip status byte.
+      \returns Status byte: circuit mode in bits 7:5, command status in bits 4:2.
+    */
+    uint8_t getStatus();
+
 #if !RADIOLIB_GODMODE && !RADIOLIB_LOW_LEVEL
   protected:
 #endif
@@ -983,7 +989,6 @@ class SX128x: public PhysicalLayer {
     uint8_t preambleLengthLoRa = 0, headerType = 0, payloadLen = 0, crcLoRa = 0;
 
     // SX128x SPI command implementations
-    uint8_t getStatus();
     int16_t writeRegister(uint16_t addr, const uint8_t* data, uint8_t numBytes);
     int16_t readRegister(uint16_t addr, uint8_t* data, uint8_t numBytes);
     int16_t writeBuffer(const uint8_t* data, uint8_t numBytes, uint8_t offset = 0x00);
